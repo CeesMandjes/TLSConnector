@@ -12,6 +12,7 @@ import java.net.URL;
 
 import javax.net.ssl.HttpsURLConnection;
 
+/* test commit from MAC */
 public class Connector extends AsyncTask<String, String, String> {
 
     private TextView textView;
