@@ -25,10 +25,8 @@
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
-        android:layout_marginBottom="8dp"
         android:onClick="performTLSHandshake"
         android:text="Perform TLS Handshake"
-        app:layout_constraintBottom_toTopOf="@+id/conn_details_tv"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
@@ -36,14 +34,25 @@
 
     <TextView
         android:id="@+id/conn_details_tv"
-        android:layout_width="392dp"
-        android:layout_height="444dp"
+        android:layout_width="379dp"
+        android:layout_height="353dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:text="TextView"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/okhttp_btn"
+        android:layout_width="206dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
+        android:onClick="okHttp"
+        android:text="OKhttp button"
+        app:layout_constraintBottom_toTopOf="@+id/conn_details_tv"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/handshake_btn" />
 </androidx.constraintlayout.widget.ConstraintLayout>
