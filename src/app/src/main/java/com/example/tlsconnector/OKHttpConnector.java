@@ -41,12 +41,14 @@ public class OKHttpConnector {
         okHttpClient.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                output.setText("ERROR: " + e.toString());
+                String current = output.getText().toString();
+                output.setText("OKHttp \nERROR: " + e.toString() + "\n" + current);
             }
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                output.setText("OKHttp \nURL: " + url + " - RESP: " + response.networkResponse().code());
+                String current = output.getText().toString();
+                output.setText("OKHttp \nURL: " + url + " - RESP: " + response.networkResponse().code() + "\n" + current);
             }
         });
     }

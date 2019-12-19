@@ -60,23 +60,24 @@ public class HttpURLConnectionConnector extends AsyncTask<String, String, String
             return "HttpURLConnection \nURL: " + urls[0] + " - RESP: " + urlConnection.getResponseCode();
 
         } catch (CertificateException e) {
-            return  "ERROR: " + e.toString();
+            return  "HttpURLConnection \nERROR: " + e.toString();
         } catch (MalformedURLException e) {
-            return  "ERROR: " + e.toString();
+            return  "HttpURLConnection \nERROR: " + e.toString();
         } catch (IOException e) {
-            return  "ERROR: " + e.toString();
+            return  "HttpURLConnection \nERROR: " + e.toString();
         } catch (NoSuchAlgorithmException e) {
-            return  "ERROR: " + e.toString();
+            return  "HttpURLConnection \nERROR: " + e.toString();
         } catch (KeyStoreException e) {
-            return  "ERROR: " + e.toString();
+            return  "HttpURLConnection \nERROR: " + e.toString();
         } catch (KeyManagementException e) {
-            return  "ERROR: " + e.toString();
+            return  "HttpURLConnection \nERROR: " + e.toString();
         }
     }
 
     @Override
     protected void onPostExecute(String result) {
         super.onPostExecute(result);
-        output.setText(result);
+        String current = output.getText().toString();
+        output.setText(result + "\n" + current);
     }
 }
