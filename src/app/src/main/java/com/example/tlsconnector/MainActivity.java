@@ -1,97 +1,86 @@
 package com.example.tlsconnector;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.FragmentManager;
-
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
-
-import org.jetbrains.annotations.NotNull;
-
-import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.MalformedURLException;
-import java.net.URL;
-
-import javax.net.ssl.HttpsURLConnection;
-
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.CertificatePinner;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity {
 
-    private Spinner spinner;
-    private TextView textView;
-    private String[] tlsVersions = new String[]{"TLS 1.0", "TLS 1.1", "TLS 1.2"};
+    //UI Fields properties
+    private Spinner tlsVersionSpn;
+    private final String[] tlsVersions = new String[]{"TLS 1.0", "TLS 1.1", "TLS 1.2"};
+    private Spinner apiSpn;
+    private final String[] apiNames = new String[] {"HttpURLConnection", "OKHttp"};
+    private TextView tlsConnectionOutputTv;
 
-
-    private Button okHttpBtn;
-    private OkHttpClient okHttpClient;
-    private Request request;
-    private String url = "https://tls-v1-2.badssl.com/";
+    //TLS URLS config
+    private final String[] tlsURLS = new String[] {"https://tls-v1-0.badssl.com", "https://tls-v1-1.badssl.com", "https://tls-v1-2.badssl.com"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        spinner = findViewById(R.id.tls_version_spin);
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_spinner_dropdown_item,tlsVersions);
-        spinner.setAdapter(adapter);
+        //Initialize TLS version spinner
+        tlsVersionSpn = findViewById(R.id.tls_version_spn);
+        ArrayAdapter<String> TLSVersionAdapter = new ArrayAdapter<String>(this,
+                android.R.layout.simple_spinner_dropdown_item, tlsVersions);
+        tlsVersionSpn.setAdapter(TLSVersionAdapter);
+
+        //Initialize API names
+        apiSpn = findViewById(R.id.tls_API_spn);
+        ArrayAdapter<String> APIAdapter = new ArrayAdapter<String>(this,
+                android.R.layout.simple_spinner_dropdown_item, apiNames);
+        apiSpn.setAdapter(APIAdapter);
+
+        //Initialize button
+        tlsConnectionOutputTv = findViewById(R.id.output_tls_connection_tv);
     }
 
-    public void performTLSHandshake(View view)
+    public void executeTLSConnection(View view)
+    {
+        String tlsURL;
+        String tlsVersionVal = tlsVersionSpn.getSelectedItem().toString();
+        switch (tlsVersionVal) {
+            case "TLS 1.0":
+                tlsURL = tlsURLS[0];
+                break;
+            case "TLS 1.1":
+                tlsURL = tlsURLS[1];
+                break;
+            case "TLS 1.2":
+                tlsURL = tlsURLS[2];
+                break;
+            default:
+                tlsURL = tlsURLS[0];
+                break;
+        }
+
+        String apiNameVal = apiSpn.getSelectedItem().toString();
+        switch (apiNameVal) {
+            case "HttpURLConnection":
+                executeHttpURLConnection(tlsURL);
+                break;
+            case "OKHttp":
+                executeOKHttp(tlsURL);
+                break;
+        }
+    }
+
+    public void executeHttpURLConnection(String url)
     {
         InputStream certificate = getResources().openRawResource(R.raw.tlsv12badsslcom);
-
-        textView = findViewById(R.id.conn_details_tv);
-        new Connector(certificate, textView).execute("https://google.com");
+        new HttpURLConnectionConnector(certificate, tlsConnectionOutputTv).execute(url);
     }
 
-    public void okHttp(View view)
+    public void executeOKHttp(String url)
     {
-        textView = findViewById(R.id.conn_details_tv);
-        okHttpBtn = findViewById(R.id.okhttp_btn);
-
-
-        //Init pinning
-        String hostname = "tls-v1-2.badssl.com";
-        CertificatePinner certificatePinner = new CertificatePinner.Builder()
-                .add(hostname, "sha256/9SLklscvzMYj8f+52lp5ze/hY0CFHyLSPQzSpYYIBm8=")
-                .build();
-
-        //Create http client with pinning object
-        okHttpClient = new OkHttpClient.Builder()
-                .certificatePinner(certificatePinner)
-                .build();
-
-
-        request = new Request.Builder()
-                .url(url).build();
-
-        okHttpClient.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                System.out.println(e.toString());
-                textView.setText(e.toString());
-            }
-
-            @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                textView.setText(response.body().string());
-            }
-        });
+        String certificateHash = "sha256/9SLklscvzMYj8f+52lp5ze/hY0CFHyLSPQzSpYYIBm8=";
+        String certificateDNWildcard = "*.badssl.com";
+        new OKHttpConnector(certificateHash, certificateDNWildcard, tlsConnectionOutputTv).execute(url);
     }
 }

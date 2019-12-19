@@ -7,7 +7,7 @@
     tools:context=".MainActivity">
 
     <Spinner
-        android:id="@+id/tls_version_spin"
+        android:id="@+id/tls_version_spn"
         android:layout_width="0dp"
         android:layout_height="60dp"
         android:layout_marginStart="16dp"
@@ -18,41 +18,39 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <Button
-        android:id="@+id/handshake_btn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+    <Spinner
+        android:id="@+id/tls_API_spn"
+        android:layout_width="0dp"
+        android:layout_height="60dp"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
-        android:onClick="performTLSHandshake"
-        android:text="Perform TLS Handshake"
+        android:spinnerMode="dropdown"
+        app:layout_constraintBottom_toTopOf="@+id/execute_tls_connection_btn"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.497"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tls_version_spin" />
+        app:layout_constraintTop_toBottomOf="@+id/tls_version_spn" />
 
     <TextView
-        android:id="@+id/conn_details_tv"
+        android:id="@+id/output_tls_connection_tv"
         android:layout_width="379dp"
         android:layout_height="353dp"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
-        android:text="TextView"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
     <Button
-        android:id="@+id/okhttp_btn"
+        android:id="@+id/execute_tls_connection_btn"
         android:layout_width="206dp"
         android:layout_height="48dp"
-        android:layout_marginTop="16dp"
         android:layout_marginBottom="16dp"
-        android:onClick="okHttp"
-        android:text="OKhttp button"
-        app:layout_constraintBottom_toTopOf="@+id/conn_details_tv"
+        android:onClick="executeTLSConnection"
+        android:text="Execute"
+        app:layout_constraintBottom_toTopOf="@+id/output_tls_connection_tv"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/handshake_btn" />
+        app:layout_constraintStart_toStartOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
