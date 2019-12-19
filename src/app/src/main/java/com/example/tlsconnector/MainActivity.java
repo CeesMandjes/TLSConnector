@@ -54,8 +54,10 @@ public class MainActivity extends AppCompatActivity {
 
     public void performTLSHandshake(View view)
     {
+        InputStream certificate = getResources().openRawResource(R.raw.tlsv12badsslcom);
+
         textView = findViewById(R.id.conn_details_tv);
-        new Connector(textView).execute("https://google.com");
+        new Connector(certificate, textView).execute("https://google.com");
     }
 
     public void okHttp(View view)
