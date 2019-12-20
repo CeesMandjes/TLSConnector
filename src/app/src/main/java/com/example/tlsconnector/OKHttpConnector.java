@@ -3,9 +3,12 @@ package com.example.tlsconnector;
 import android.widget.TextView;
 import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
+import java.util.Arrays;
+
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.CertificatePinner;
+import okhttp3.ConnectionSpec;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -32,6 +35,8 @@ public class OKHttpConnector {
 
         //Create http client with pinning object
         OkHttpClient okHttpClient = new OkHttpClient.Builder()
+                //Enables to also connect with TLS1.0 and TLS1.1
+                .connectionSpecs(Arrays.asList(ConnectionSpec.MODERN_TLS, ConnectionSpec.COMPATIBLE_TLS))
                 .certificatePinner(certificatePinner)
                 .build();
 
