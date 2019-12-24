@@ -1,12 +1,17 @@
 package com.example.tlsconnector;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
 import android.widget.Spinner;
 import android.widget.TextView;
+
 import java.io.InputStream;
+import java.io.PushbackInputStream;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -16,6 +21,7 @@ public class MainActivity extends AppCompatActivity {
     private Spinner apiSpn;
     private final String[] apiNames = new String[] {"HttpURLConnection", "OKHttp"};
     private TextView tlsConnectionOutputTv;
+    private CheckBox pinCorrectCertificateCb;
 
     //TLS URLS config
     private final String[] tlsURLS = new String[] {"https://tls-v1-0.badssl.com", "https://tls-v1-1.badssl.com", "https://tls-v1-2.badssl.com"};
@@ -37,12 +43,27 @@ public class MainActivity extends AppCompatActivity {
                 android.R.layout.simple_spinner_dropdown_item, apiNames);
         apiSpn.setAdapter(APIAdapter);
 
-        //Initialize button
+        //Initialize checkbox for correct certificate insertion
+        pinCorrectCertificateCb = findViewById(R.id.pin_correct_certificate_cb);
+
+        //Initialize output field
         tlsConnectionOutputTv = findViewById(R.id.output_tls_connection_tv);
     }
 
     public void executeTLSConnection(View view)
     {
+        //Initialize certificates
+        CertificateInformation badSSLCertificate = new BadSSLCertificate(getResources().openRawResource(R.raw.tlsv12badsslcom));
+        CertificateInformation incorrectCertificate = new IncorrectCertificate(getResources().openRawResource(R.raw.nunl));
+
+        //Initialize (correct) certificate to pin for connection
+        CertificateInformation certificateInformation;
+        if(pinCorrectCertificateCb.isChecked())
+            certificateInformation = badSSLCertificate;
+        else
+            certificateInformation = incorrectCertificate;
+
+        //Initialize URL for connection based in user's input
         String tlsURL;
         String tlsVersionVal = tlsVersionSpn.getSelectedItem().toString();
         switch (tlsVersionVal) {
@@ -60,27 +81,48 @@ public class MainActivity extends AppCompatActivity {
                 break;
         }
 
+        //Initialize API for connection based on user's input
+        String tlsAPI;
         String apiNameVal = apiSpn.getSelectedItem().toString();
         switch (apiNameVal) {
             case "HttpURLConnection":
-                executeHttpURLConnection(tlsURL);
+                executeHttpURLConnection(certificateInformation, tlsURL);
                 break;
             case "OKHttp":
-                executeOKHttp(tlsURL);
+                executeOKHttp(certificateInformation, tlsURL);
                 break;
         }
     }
 
-    public void executeHttpURLConnection(String url)
+    public void executeHttpURLConnection(CertificateInformation certificate, String url)
     {
-        InputStream certificate = getResources().openRawResource(R.raw.tlsv12badsslcom);
-        new HttpURLConnectionConnector(certificate, tlsConnectionOutputTv).execute(url);
+        new HttpURLConnectionConnector(certificate.file, tlsConnectionOutputTv).execute(url);
     }
 
-    public void executeOKHttp(String url)
+    public void executeOKHttp(CertificateInformation certificate, String url)
     {
-        String certificateHash = "sha256/9SLklscvzMYj8f+52lp5ze/hY0CFHyLSPQzSpYYIBm8=";
-        String certificateDNWildcard = "*.badssl.com";
-        new OKHttpConnector(certificateHash, certificateDNWildcard, tlsConnectionOutputTv).execute(url);
+        new OKHttpConnector(certificate.hash, certificate.wildcardDomainName, tlsConnectionOutputTv).execute(url);
+    }
+
+    private final class BadSSLCertificate extends CertificateInformation{
+        public BadSSLCertificate(InputStream file)
+        {
+            super(
+                file,
+                "sha256/9SLklscvzMYj8f+52lp5ze/hY0CFHyLSPQzSpYYIBm8=",
+                "*.badssl.com"
+            );
+        }
+    }
+
+    private final class IncorrectCertificate extends CertificateInformation{
+        public IncorrectCertificate(InputStream file)
+        {
+            super(
+                file,
+                "sha256/1OLklscvzMYj8f888lp5ze/hY0CFHyLSPQzSpYYIBm8=",
+                "*.badssl.com"
+            );
+        }
     }
 }

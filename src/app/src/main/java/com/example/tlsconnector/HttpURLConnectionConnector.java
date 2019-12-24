@@ -4,6 +4,7 @@ import android.os.AsyncTask;
 import android.widget.TextView;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PushbackInputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.KeyManagementException;
@@ -30,7 +31,8 @@ public class HttpURLConnectionConnector extends AsyncTask<String, String, String
 
     @Override
     protected String doInBackground(String... urls) {
-        try {
+        try
+        {
             //Load given certificate into certificate factory and create certificate object
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
             Certificate ca = cf.generateCertificate(certificate);
