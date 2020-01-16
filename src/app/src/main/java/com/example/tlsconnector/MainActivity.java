@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.res.Resources;
 import android.os.Bundle;
+import android.text.method.ScrollingMovementMethod;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
@@ -48,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
 
         //Initialize output field
         tlsConnectionOutputTv = findViewById(R.id.output_tls_connection_tv);
+        tlsConnectionOutputTv.setMovementMethod(new ScrollingMovementMethod());
     }
 
     public void executeTLSConnection(View view)
