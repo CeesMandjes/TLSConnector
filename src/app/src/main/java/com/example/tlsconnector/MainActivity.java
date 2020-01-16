@@ -82,7 +82,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         //Initialize API for connection based on user's input
-        String tlsAPI;
         String apiNameVal = apiSpn.getSelectedItem().toString();
         switch (apiNameVal) {
             case "HttpURLConnection":
