@@ -1,18 +1,28 @@
 package com.example.tlsconnector;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-
-import android.content.res.Resources;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import java.util.Arrays;
+import java.util.UUID;
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.safetynet.SafetyNet;
+import com.google.android.gms.safetynet.SafetyNetApi;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+
 import java.io.InputStream;
-import java.io.PushbackInputStream;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -50,6 +60,47 @@ public class MainActivity extends AppCompatActivity {
         //Initialize output field
         tlsConnectionOutputTv = findViewById(R.id.output_tls_connection_tv);
         tlsConnectionOutputTv.setMovementMethod(new ScrollingMovementMethod());
+
+        //Do Google Play service check
+        if (GoogleApiAvailability.getInstance()
+                .isGooglePlayServicesAvailable(this, 13000000) ==
+                ConnectionResult.SUCCESS) {
+            String current = tlsConnectionOutputTv.getText().toString();
+            tlsConnectionOutputTv.setText("\n\nGoogle Play services \nSUCCESS: Device has Google Play service version 13+ installed\n" + current);
+        } else {
+            String current = tlsConnectionOutputTv.getText().toString();
+            tlsConnectionOutputTv.setText("\n\nGoogle Play services \nERROR: Device does not have Google Play service version 13+ installed\n" + current);
+        }
+
+        //Get SafetyNet JWS
+        final byte[] nonce = UUID.randomUUID().toString().getBytes();
+        SafetyNet.getClient(this).attest(nonce, "AIzaSyBzxfDEPiyGfGZPb6JwyVumYeWrjTspnkU")
+                .addOnSuccessListener(this,
+                        new OnSuccessListener<SafetyNetApi.AttestationResponse>() {
+                            @Override
+                            public void onSuccess(SafetyNetApi.AttestationResponse response) {
+                                String current = tlsConnectionOutputTv.getText().toString();
+                                tlsConnectionOutputTv.setText("\nSafetyNet \nSUCCESS: Google's response received\n" +
+                                        "Nonce: " + Arrays.toString(nonce) + current);
+
+                                OnlineVerify verifyObject = new OnlineVerify(tlsConnectionOutputTv);
+                                verifyObject.execute(response.getJwsResult());
+                            }
+                        })
+                .addOnFailureListener(this, new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        // An error occurred while communicating with the service.
+                        if (e instanceof ApiException) {
+                            ApiException apiException = (ApiException) e;
+                            String current = tlsConnectionOutputTv.getText().toString();
+                            tlsConnectionOutputTv.setText("\nSafetyNet \nERROR: " + apiException.toString() + "\n" + current);
+                        } else {
+                            String current = tlsConnectionOutputTv.getText().toString();
+                            tlsConnectionOutputTv.setText("\nSafetyNet \nERROR: " + e.toString() + "\n" + current);
+                        }
+                    }
+                });
     }
 
     public void executeTLSConnection(View view)
