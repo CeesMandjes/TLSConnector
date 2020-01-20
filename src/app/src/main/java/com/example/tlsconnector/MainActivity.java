@@ -4,7 +4,6 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
-import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
@@ -27,7 +26,6 @@ import java.io.InputStream;
 public class MainActivity extends AppCompatActivity {
 
     //UI Fields properties
-    private Spinner tlsVersionSpn;
     private final String[] tlsVersions = new String[]{"TLS 1.0", "TLS 1.1", "TLS 1.2"};
     private Spinner apiSpn;
     private final String[] apiNames = new String[] {"HttpURLConnection", "OKHttp"};
@@ -35,18 +33,12 @@ public class MainActivity extends AppCompatActivity {
     private CheckBox pinCorrectCertificateCb;
 
     //TLS URLS config
-    private final String[] tlsURLS = new String[] {"https://tls-v1-0.badssl.com", "https://tls-v1-1.badssl.com", "https://tls-v1-2.badssl.com"};
+    private final String url = "https://cees.nwlab.nl/index.php/api/getnonce";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        //Initialize TLS version spinner
-        tlsVersionSpn = findViewById(R.id.tls_version_spn);
-        ArrayAdapter<String> TLSVersionAdapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_spinner_dropdown_item, tlsVersions);
-        tlsVersionSpn.setAdapter(TLSVersionAdapter);
 
         //Initialize API names
         apiSpn = findViewById(R.id.tls_API_spn);
@@ -106,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
     public void executeTLSConnection(View view)
     {
         //Initialize certificates
-        CertificateInformation badSSLCertificate = new BadSSLCertificate(getResources().openRawResource(R.raw.tlsv12badsslcom));
+        CertificateInformation badSSLCertificate = new CeesNWLabCertificate(getResources().openRawResource(R.raw.ceesnwlab));
         CertificateInformation incorrectCertificate = new IncorrectCertificate(getResources().openRawResource(R.raw.nunl));
 
         //Initialize (correct) certificate to pin for connection
@@ -116,32 +108,14 @@ public class MainActivity extends AppCompatActivity {
         else
             certificateInformation = incorrectCertificate;
 
-        //Initialize URL for connection based in user's input
-        String tlsURL;
-        String tlsVersionVal = tlsVersionSpn.getSelectedItem().toString();
-        switch (tlsVersionVal) {
-            case "TLS 1.0":
-                tlsURL = tlsURLS[0];
-                break;
-            case "TLS 1.1":
-                tlsURL = tlsURLS[1];
-                break;
-            case "TLS 1.2":
-                tlsURL = tlsURLS[2];
-                break;
-            default:
-                tlsURL = tlsURLS[0];
-                break;
-        }
-
         //Initialize API for connection based on user's input
         String apiNameVal = apiSpn.getSelectedItem().toString();
         switch (apiNameVal) {
             case "HttpURLConnection":
-                executeHttpURLConnection(certificateInformation, tlsURL);
+                executeHttpURLConnection(certificateInformation, url);
                 break;
             case "OKHttp":
-                executeOKHttp(certificateInformation, tlsURL);
+                executeOKHttp(certificateInformation, url);
                 break;
         }
     }
@@ -156,13 +130,13 @@ public class MainActivity extends AppCompatActivity {
         new OKHttpConnector(certificate.hash, certificate.wildcardDomainName, tlsConnectionOutputTv).execute(url);
     }
 
-    private final class BadSSLCertificate extends CertificateInformation{
-        public BadSSLCertificate(InputStream file)
+    private final class CeesNWLabCertificate extends CertificateInformation{
+        public CeesNWLabCertificate(InputStream file)
         {
             super(
                 file,
-                "sha256/9SLklscvzMYj8f+52lp5ze/hY0CFHyLSPQzSpYYIBm8=",
-                "*.badssl.com"
+                "sha256/aIuSVfYXa9EUIbVv7mS5AhiUTE4+UQ3+blpu0QOP2+I=",
+                "cees.nwlab.nl"
             );
         }
     }
@@ -173,7 +147,7 @@ public class MainActivity extends AppCompatActivity {
             super(
                 file,
                 "sha256/1OLklscvzMYj8f888lp5ze/hY0CFHyLSPQzSpYYIBm8=",
-                "*.badssl.com"
+                "cees.nwlab.nl"
             );
         }
     }

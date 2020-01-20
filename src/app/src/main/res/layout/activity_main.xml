@@ -7,18 +7,6 @@
     tools:context=".MainActivity">
 
     <Spinner
-        android:id="@+id/tls_version_spn"
-        android:layout_width="0dp"
-        android:layout_height="60dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:spinnerMode="dropdown"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <Spinner
         android:id="@+id/tls_API_spn"
         android:layout_width="0dp"
         android:layout_height="60dp"
@@ -26,22 +14,23 @@
         android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
         android:spinnerMode="dropdown"
-        app:layout_constraintBottom_toTopOf="@+id/pin_correct_certificate_cb"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tls_version_spn" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/output_tls_connection_tv"
-        android:layout_width="379dp"
-        android:layout_height="267dp"
+        android:layout_width="365dp"
+        android:layout_height="420dp"
         android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:scrollbars="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/execute_tls_connection_btn" />
 
     <Button
         android:id="@+id/execute_tls_connection_btn"
@@ -54,7 +43,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/pin_correct_certificate_cb" />
+        app:layout_constraintTop_toBottomOf="@+id/pin_correct_certificate_cb"
+        app:layout_constraintVertical_bias="0.046" />
 
     <CheckBox
         android:id="@+id/pin_correct_certificate_cb"
@@ -63,7 +53,6 @@
         android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
         android:text="Pin correct certificate"
-        app:layout_constraintBottom_toTopOf="@+id/execute_tls_connection_btn"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tls_API_spn" />
 
