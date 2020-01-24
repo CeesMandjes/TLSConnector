@@ -1,6 +1,5 @@
 package com.example.tlsconnector;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
@@ -10,16 +9,8 @@ import android.widget.CheckBox;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-import java.util.Arrays;
-import java.util.UUID;
-
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
-import com.google.android.gms.common.api.ApiException;
-import com.google.android.gms.safetynet.SafetyNet;
-import com.google.android.gms.safetynet.SafetyNetApi;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 
 import java.io.InputStream;
 
@@ -33,7 +24,7 @@ public class MainActivity extends AppCompatActivity {
     private CheckBox pinCorrectCertificateCb;
 
     //TLS URLS config
-    private final String url = "https://cees.nwlab.nl/index.php/api/getnonce";
+    private final String url = "https://cees.nwlab.nl/index.php/";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,45 +45,14 @@ public class MainActivity extends AppCompatActivity {
         tlsConnectionOutputTv.setMovementMethod(new ScrollingMovementMethod());
 
         //Do Google Play service check
+        final String googlePlayServiceTag = "Google play services";
         if (GoogleApiAvailability.getInstance()
                 .isGooglePlayServicesAvailable(this, 13000000) ==
                 ConnectionResult.SUCCESS) {
-            String current = tlsConnectionOutputTv.getText().toString();
-            tlsConnectionOutputTv.setText("\n\nGoogle Play services \nSUCCESS: Device has Google Play service version 13+ installed\n" + current);
+            addTextToOutputUI(googlePlayServiceTag, "SUCCESS: Device has Google Play service version 13+ installed");
         } else {
-            String current = tlsConnectionOutputTv.getText().toString();
-            tlsConnectionOutputTv.setText("\n\nGoogle Play services \nERROR: Device does not have Google Play service version 13+ installed\n" + current);
+            addTextToOutputUI(googlePlayServiceTag, "ERROR: Device does not have Google Play service version 13+ installed");
         }
-
-        //Get SafetyNet JWS
-        final byte[] nonce = UUID.randomUUID().toString().getBytes();
-        SafetyNet.getClient(this).attest(nonce, "AIzaSyBzxfDEPiyGfGZPb6JwyVumYeWrjTspnkU")
-                .addOnSuccessListener(this,
-                        new OnSuccessListener<SafetyNetApi.AttestationResponse>() {
-                            @Override
-                            public void onSuccess(SafetyNetApi.AttestationResponse response) {
-                                String current = tlsConnectionOutputTv.getText().toString();
-                                tlsConnectionOutputTv.setText("\nSafetyNet \nSUCCESS: Google's response received\n" +
-                                        "Nonce: " + Arrays.toString(nonce) + current);
-
-                                OnlineVerify verifyObject = new OnlineVerify(tlsConnectionOutputTv);
-                                verifyObject.execute(response.getJwsResult());
-                            }
-                        })
-                .addOnFailureListener(this, new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        // An error occurred while communicating with the service.
-                        if (e instanceof ApiException) {
-                            ApiException apiException = (ApiException) e;
-                            String current = tlsConnectionOutputTv.getText().toString();
-                            tlsConnectionOutputTv.setText("\nSafetyNet \nERROR: " + apiException.toString() + "\n" + current);
-                        } else {
-                            String current = tlsConnectionOutputTv.getText().toString();
-                            tlsConnectionOutputTv.setText("\nSafetyNet \nERROR: " + e.toString() + "\n" + current);
-                        }
-                    }
-                });
     }
 
     public void executeTLSConnection(View view)
@@ -120,9 +80,20 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void addTextToOutputUI(String tag, String value)
+    {
+        String current = tlsConnectionOutputTv.getText().toString();
+        tlsConnectionOutputTv.setText(current + "\n\n" + tag + "\n" + value );
+    }
+
+    public void addErrorToOutputUI(String tag, String value)
+    {
+        addTextToOutputUI(tag, "Error: " + value);
+    }
+
     public void executeHttpURLConnection(CertificateInformation certificate, String url)
     {
-        new HttpURLConnectionConnector(certificate.file, tlsConnectionOutputTv).execute(url);
+        new HttpURLConnectionConnector(certificate.file, tlsConnectionOutputTv, this).execute(url);
     }
 
     public void executeOKHttp(CertificateInformation certificate, String url)

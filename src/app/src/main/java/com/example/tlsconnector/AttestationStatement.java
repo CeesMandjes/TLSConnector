@@ -36,7 +36,7 @@ public class AttestationStatement extends JsonWebSignature.Payload {
      * Digest of the APK that submitted this request.
      */
     @Key
-    private String apkDigestSha256;
+    public String apkDigestSha256;
 
     /**
      * The device passed CTS and matches a known profile.

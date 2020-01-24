@@ -20,6 +20,8 @@ import com.google.api.client.util.Key;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 /**
@@ -199,9 +201,13 @@ public class OnlineVerify extends AsyncTask<String, String, AttestationStatement
         String printResult = "\nSafetyNet attestations result \n";
         printResult = printResult + "Nonce: " + Arrays.toString(result.getNonce()) + "\n";
         printResult = printResult + "Timestamp: " + result.getTimestampMs() + "\n";
-        if (result.getApkPackageName() != null && result.getApkDigestSha256() != null) {
+        if (result.getApkPackageName() != null) {
             printResult = printResult + "APK package name: " + result.getApkPackageName() + "\n";
-            printResult = printResult + "APK digest SHA256: " + Arrays.toString(result.getApkDigestSha256()) + "\n";
+
+        }
+        if(result.getApkDigestSha256() != null)
+        {
+            printResult = printResult + "APK digest SHA256: " + result.getApkDigestSha256() + "\n";
         }
         printResult = printResult + "CTS profile match: " + result.isCtsProfileMatch() + "\n";
         printResult = printResult + "Basic integrity match: " + result.hasBasicIntegrity() + "\n";
