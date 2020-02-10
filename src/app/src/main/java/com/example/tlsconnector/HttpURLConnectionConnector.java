@@ -90,7 +90,7 @@ public class HttpURLConnectionConnector extends AsyncTask<String, Void, Void> {
             //Use pinned certificate
             validateJWSRequest.setSSLSocketFactory(session.getSocketFactory());
             validateJWSRequest.connect();
-            mainContext.addTextToOutputUI(TAG , "URL: " + validateJWSRequest.getURL().toString() + "\nResult: " + returnVal(new BufferedInputStream(validateJWSRequest.getInputStream())));
+            mainContext.addTextToOutputUI(TAG , "URL: " + validateJWSRequest.getURL().toString() + "\nPinned certificate: correct \nResult: " + returnVal(new BufferedInputStream(validateJWSRequest.getInputStream())));
 
         } catch (CertificateException e) {
             mainContext.addErrorToOutputUI(TAG, e.getMessage());
