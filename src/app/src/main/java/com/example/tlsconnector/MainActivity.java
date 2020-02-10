@@ -80,6 +80,16 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void executeHttpURLConnection(CertificateInformation certificate, String url)
+    {
+        new HttpURLConnectionConnector(certificate.file, tlsConnectionOutputTv, this).execute(url);
+    }
+
+    public void executeOKHttp(CertificateInformation certificate, String url)
+    {
+        new OKHttpConnector(certificate.hash, certificate.wildcardDomainName, tlsConnectionOutputTv, this).execute(url);
+    }
+
     public void addTextToOutputUI(String tag, String value)
     {
         String current = tlsConnectionOutputTv.getText().toString();
@@ -89,16 +99,6 @@ public class MainActivity extends AppCompatActivity {
     public void addErrorToOutputUI(String tag, String value)
     {
         addTextToOutputUI(tag, "Error: " + value);
-    }
-
-    public void executeHttpURLConnection(CertificateInformation certificate, String url)
-    {
-        new HttpURLConnectionConnector(certificate.file, tlsConnectionOutputTv, this).execute(url);
-    }
-
-    public void executeOKHttp(CertificateInformation certificate, String url)
-    {
-        new OKHttpConnector(certificate.hash, certificate.wildcardDomainName, tlsConnectionOutputTv).execute(url);
     }
 
     private final class CeesNWLabCertificate extends CertificateInformation{

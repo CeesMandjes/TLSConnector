@@ -1,60 +1,87 @@
 package com.example.tlsconnector;
 
+import android.os.AsyncTask;
 import android.widget.TextView;
-import org.jetbrains.annotations.NotNull;
-import java.io.IOException;
-import java.util.Arrays;
 
-import okhttp3.Call;
-import okhttp3.Callback;
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.util.concurrent.ExecutionException;
+
 import okhttp3.CertificatePinner;
-import okhttp3.ConnectionSpec;
+import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 
-public class OKHttpConnector {
+public class OKHttpConnector extends AsyncTask<String, Void, Void> {
 
     private TextView output;
     private String certificateHash;
     private String certificateDNWildcard;
+    private MainActivity mainContext;
+    private final String TAG = "OkHttp";
 
-    public OKHttpConnector(String certificateHash, String certificateDNWildcard, TextView printResult)
+    public OKHttpConnector(String certificateHash, String certificateDNWildcard, TextView printResult, MainActivity context)
     {
         this.certificateHash = certificateHash;
         this.certificateDNWildcard = certificateDNWildcard;
         this.output = printResult;
+        this.mainContext = context;
     }
 
-    public void execute(final String url)
-    {
-        //Create certificate pinner object and set certificate hash
-        CertificatePinner certificatePinner = new CertificatePinner.Builder()
-                .add(certificateDNWildcard, certificateHash)
-                .build();
+    @Override
+    protected Void doInBackground(final String... urls) {
+        try {
+            //** Pin certificate **
+            //Pin certificate by its domain name and certificate's hash
+            CertificatePinner certificatePinner = new CertificatePinner.Builder()
+                    .add(certificateDNWildcard, certificateHash)
+                    .build();
+            //Create http client with pinned certificate
+            OkHttpClient okHttpClient = new OkHttpClient.Builder()
+                    .certificatePinner(certificatePinner)
+                    .build();
 
-        //Create http client with pinning object
-        OkHttpClient okHttpClient = new OkHttpClient.Builder()
-                //Enables to also connect with TLS1.0 and TLS1.1
-                .connectionSpecs(Arrays.asList(ConnectionSpec.MODERN_TLS, ConnectionSpec.COMPATIBLE_TLS))
-                .certificatePinner(certificatePinner)
-                .build();
+            //** Get nonce from server **
+            Request getNonceRequest = new Request.Builder()
+                    .url(urls[0] + "api/getnonce").build();
+            //Use pinned certificate
+            Response getNonceResponse = okHttpClient.newCall(getNonceRequest).execute();
+            String nonce = getNonceResponse.body().string();
+            mainContext.addTextToOutputUI(TAG, "URL: " + getNonceRequest.url().toString() + "\nPinned certificate: correct \nNonce:" + nonce);
 
-       Request request = new Request.Builder()
-                .url(url).build();
+            //** Get signed attestation from Google **
+            AndroidSafetyNet androidSafetyNet = new AndroidSafetyNet(mainContext);
+            //Do request with given nonce
+            String signedAttestation = androidSafetyNet.getJws(nonce.getBytes());
+            mainContext.addTextToOutputUI("Google SafetyNet", "JWS response received");
 
-        okHttpClient.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                String current = output.getText().toString();
-                output.setText("OKHttp \nERROR: " + e.toString() + "\n" + current);
-            }
+            //** Forward signed attestation to server **
+            //Set signed attestation in POST body
+            RequestBody postRequestBody = new MultipartBody.Builder()
+                    .setType(MultipartBody.FORM)
+                    .addFormDataPart("jws", signedAttestation)
+                    .build();
+            //Set POST body and do request
+            Request validateJWSRequest = new Request.Builder()
+                    .url(urls[0] + "api/validatejws")
+                    .post(postRequestBody)
+                    .build();
+            //Use pinned certificate
+            Response validateJWSResponse = okHttpClient.newCall(validateJWSRequest).execute();
+            String result = validateJWSResponse.body().string();
+            mainContext.addTextToOutputUI(TAG , "URL: " + validateJWSRequest.url().toString() + "\nPinned certificate: correct \nResult: " + result);
 
-            @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                String current = output.getText().toString();
-                output.setText("OKHttp \nURL: " + url + " - RESP: " + response.networkResponse().code() + "\n" + current);
-            }
-        });
+        }catch (IOException e) {
+            mainContext.addErrorToOutputUI(TAG, e.getMessage());
+        } catch (InterruptedException e) {
+            mainContext.addErrorToOutputUI(TAG, e.getMessage());
+        } catch (ExecutionException e) {
+            mainContext.addErrorToOutputUI(TAG, e.getMessage());
+        } finally {
+
+        }
+        return null;
     }
 }
