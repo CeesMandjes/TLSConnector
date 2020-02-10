@@ -1,25 +1,11 @@
 package com.example.tlsconnector;
 
-import android.app.Activity;
-import android.content.Context;
 import android.os.AsyncTask;
 import android.widget.TextView;
-
-import androidx.annotation.NonNull;
-
-import com.google.android.gms.common.api.ApiException;
-import com.google.android.gms.safetynet.SafetyNet;
-import com.google.android.gms.safetynet.SafetyNetApi;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
-import com.google.android.gms.tasks.Tasks;
-
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.io.PushbackInputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.KeyManagementException;
@@ -29,17 +15,12 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
-import java.util.Arrays;
-import java.util.UUID;
 import java.util.concurrent.ExecutionException;
-
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 
-import static com.google.android.gms.safetynet.SafetyNetApi.*;
-
-public class HttpURLConnectionConnector extends AsyncTask<String, String, String> {
+public class HttpURLConnectionConnector extends AsyncTask<String, Void, Void> {
 
     private TextView output;
     private InputStream certificate;
@@ -55,11 +36,7 @@ public class HttpURLConnectionConnector extends AsyncTask<String, String, String
     }
 
     @Override
-    protected String doInBackground(final String... urls) {
-        //AndroidSafetyNet temp = new AndroidSafetyNet(mainContext);
-
-
-        String returnVal = "";
+    protected Void doInBackground(final String... urls) {
         try
         {
             //Load given certificate into certificate factory and create certificate object
@@ -108,7 +85,6 @@ public class HttpURLConnectionConnector extends AsyncTask<String, String, String
             out.print(postParamaters);
             out.close();
             validateJWSRequest.setSSLSocketFactory(session.getSocketFactory());
-
             validateJWSRequest.connect();
             mainContext.addTextToOutputUI(TAG , "URL: " + validateJWSRequest.getURL().toString() + "\nResult: " + returnVal(new BufferedInputStream(validateJWSRequest.getInputStream())));
 
@@ -130,8 +106,7 @@ public class HttpURLConnectionConnector extends AsyncTask<String, String, String
         } catch (ExecutionException e) {
             mainContext.addErrorToOutputUI(TAG, e.getLocalizedMessage());
         }
-
-        return returnVal;
+        return null;
     }
 
     private String returnVal(BufferedInputStream input)
@@ -153,12 +128,5 @@ public class HttpURLConnectionConnector extends AsyncTask<String, String, String
             }
         }
         return returnVal;
-    }
-
-    @Override
-    protected void onPostExecute(String result) {
-        super.onPostExecute(result);
-        /*String current = output.getText().toString();
-        output.setText(result + "\n" + current);*/
     }
 }
