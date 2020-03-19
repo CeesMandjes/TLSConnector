@@ -14,17 +14,16 @@ import com.google.android.gms.common.GoogleApiAvailability;
 
 import java.io.InputStream;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements IOutput {
 
     //UI Fields properties
-    private final String[] tlsVersions = new String[]{"TLS 1.0", "TLS 1.1", "TLS 1.2"};
     private Spinner apiSpn;
-    private final String[] apiNames = new String[] {"HttpURLConnection", "OKHttp"};
+    private final String[] apiNames = new String[] {"Android's default library", "OKHttp library"};
     private TextView tlsConnectionOutputTv;
     private CheckBox pinCorrectCertificateCb;
 
     //TLS URLS config
-    private final String url = "https://cees.nwlab.nl/index.php/";
+    private final String url = "https://cees.nwlab.nl";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,12 +45,13 @@ public class MainActivity extends AppCompatActivity {
 
         //Do Google Play service check
         final String googlePlayServiceTag = "Google play services";
+        final String googlePlayServiceAction = "Availability and version check";
         if (GoogleApiAvailability.getInstance()
                 .isGooglePlayServicesAvailable(this, 13000000) ==
                 ConnectionResult.SUCCESS) {
-            addTextToOutputUI(googlePlayServiceTag, "SUCCESS: Device has Google Play service version 13+ installed");
+            printText(googlePlayServiceTag, googlePlayServiceAction, "Success: Device has Google Play service version 13+ installed");
         } else {
-            addTextToOutputUI(googlePlayServiceTag, "ERROR: Device does not have Google Play service version 13+ installed");
+            printError(googlePlayServiceTag, googlePlayServiceAction, "Device does not have Google Play service version 13+ installed");
         }
     }
 
@@ -71,34 +71,34 @@ public class MainActivity extends AppCompatActivity {
         //Initialize API for connection based on user's input
         String apiNameVal = apiSpn.getSelectedItem().toString();
         switch (apiNameVal) {
-            case "HttpURLConnection":
-                executeHttpURLConnection(certificateInformation, url);
+            case "Android's default library":
+                executeHttpURLConnection(url, certificateInformation);
                 break;
-            case "OKHttp":
-                executeOKHttp(certificateInformation, url);
+            case "OKHttp library":
+                executeOKHttp(url, certificateInformation);
                 break;
         }
     }
 
-    public void executeHttpURLConnection(CertificateInformation certificate, String url)
+    public void executeHttpURLConnection(String baseURL, CertificateInformation certificate)
     {
-        new HttpURLConnectionConnector(certificate.file, tlsConnectionOutputTv, this).execute(url);
+        new AndroidsDefaultLibraryConnector(baseURL, certificate, this, this).execute();
     }
 
-    public void executeOKHttp(CertificateInformation certificate, String url)
+    public void executeOKHttp(String baseURL, CertificateInformation certificate)
     {
-        new OKHttpConnector(certificate.hash, certificate.wildcardDomainName, tlsConnectionOutputTv, this).execute(url);
+        new OKHttpLibraryConnector(baseURL, certificate, this, this).execute();
     }
 
-    public void addTextToOutputUI(String tag, String value)
+    public void printText(String tag, String action, String value)
     {
         String current = tlsConnectionOutputTv.getText().toString();
-        tlsConnectionOutputTv.setText(current + "\n\n" + tag + "\n" + value );
+        tlsConnectionOutputTv.setText(current + "\n\n" + tag +  " - " + action + "\n" + value );
     }
 
-    public void addErrorToOutputUI(String tag, String value)
+    public void printError(String tag, String action, String value)
     {
-        addTextToOutputUI(tag, "Error: " + value);
+        printText(tag, action , "Error: " + value);
     }
 
     private final class CeesNWLabCertificate extends CertificateInformation{
@@ -106,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
         {
             super(
                 file,
-                "sha256/aIuSVfYXa9EUIbVv7mS5AhiUTE4+UQ3+blpu0QOP2+I=",
+                "sha256/PUI0MHiv1VYRDKQAhUU72iatxZb+NYiBHNVMlOOiz8c=",
                 "cees.nwlab.nl"
             );
         }

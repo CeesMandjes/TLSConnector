@@ -1,10 +1,9 @@
 package com.example.tlsconnector;
 
-import android.os.AsyncTask;
-import android.widget.TextView;
+import android.app.Activity;
+
 import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -15,34 +14,28 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
-import java.util.concurrent.ExecutionException;
+
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 
-public class HttpURLConnectionConnector extends AsyncTask<String, Void, Void> {
+public class AndroidsDefaultLibraryConnector extends SafetyNetConnector {
 
-    private TextView output;
-    private InputStream certificate;
-    private MainActivity mainContext;
-    private final String TAG = "HttpURLConnection";
     private SSLContext session;
 
-    public HttpURLConnectionConnector(InputStream certificate, TextView printResult, MainActivity context)
+    public AndroidsDefaultLibraryConnector(String baseURL, CertificateInformation certificate, Activity context, IOutput output)
     {
-        this.certificate = certificate;
-        this.output = printResult;
-        this.mainContext = context;
+        super("Android's default library", baseURL, certificate, context, output);
     }
 
     @Override
-    protected Void doInBackground(final String... urls) {
-        try
-        {
+    protected void pinCertificate(String baseURL, CertificateInformation certificate) {
+        String action = "Pin certificate";
+        try {
             //** Pin certificate **
             //Load given certificate into certificate factory and create certificate object
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
-            Certificate ca = cf.generateCertificate(certificate);
+            Certificate ca = cf.generateCertificate(certificate.file);
 
             //Create a local KeyStore containing the given certificate
             String keyStoreType = KeyStore.getDefaultType();
@@ -59,23 +52,48 @@ public class HttpURLConnectionConnector extends AsyncTask<String, Void, Void> {
             session = SSLContext.getInstance("TLS");
             session.init(null, tmf.getTrustManagers(), null);
 
+            output.printText(tag, action, "Certificate for host " + certificate.wildcardDomainName + " is pinned");
+        } catch (IOException e) {
+            output.printError(tag, action, e.getMessage());
+        } catch (CertificateException e) {
+            output.printError(tag, action, e.getMessage());
+        } catch (NoSuchAlgorithmException e) {
+            output.printError(tag, action, e.getMessage());
+        } catch (KeyStoreException e) {
+            output.printError(tag, action, e.getMessage());
+        } catch (KeyManagementException e) {
+            output.printError(tag, action, e.getMessage());
+        }
+    }
+
+    @Override
+    protected byte[] requestNonce(String baseURL) {
+        String action = "Request nonce";
+        try {
             //** Get nonce from server **
-            URL getNonceUrl = new URL(urls[0] + "api/getnonce");
+            URL getNonceUrl = new URL(baseURL + "/index.php/api/getnonce");
             HttpsURLConnection getNonceRequest =
                     (HttpsURLConnection) getNonceUrl.openConnection();
             //Use pinned certificate
             getNonceRequest.setSSLSocketFactory(session.getSocketFactory());
-            String nonce = returnVal(new BufferedInputStream(getNonceRequest.getInputStream()));
-            mainContext.addTextToOutputUI(TAG , "URL: " + getNonceRequest.getURL().toString() + "\nPinned certificate: correct \nNonce:" + nonce);
+            String nonce = bfsToString(new BufferedInputStream(getNonceRequest.getInputStream()));
+            output.printText(tag, action, "URL: " + getNonceRequest.getURL().toString() + "\nPinned certificate: correct \nNonce:" + nonce);
 
-            //** Get signed attestation from Google **
-            AndroidSafetyNet androidSafetyNet = new AndroidSafetyNet(mainContext);
-            //Do request with given nonce
-            String signedAttestation = androidSafetyNet.getJws(nonce.getBytes());
-            mainContext.addTextToOutputUI("Google SafetyNet" , "JWS response received");
+            return nonce.getBytes();
+        } catch (MalformedURLException e) {
+            output.printError(tag, action,e.getMessage());
+        } catch (IOException e) {
+            output.printError(tag, action, e.getMessage());
+        }
+        return null;
+    }
 
+    @Override
+    protected void sendSignedAttestation(String baseURL, String signedAttestation) {
+        String action = "Send signed attestation";
+        try {
             //** Forward signed attestation to server **
-            URL sendSafetyNetJWS = new URL(urls[0] + "api/validatejws");
+            URL sendSafetyNetJWS = new URL(baseURL + "/index.php/api/validatejws");
             HttpsURLConnection validateJWSRequest =
                     (HttpsURLConnection) sendSafetyNetJWS.openConnection();
             //Set signed attestation in POST request
@@ -90,29 +108,15 @@ public class HttpURLConnectionConnector extends AsyncTask<String, Void, Void> {
             //Use pinned certificate
             validateJWSRequest.setSSLSocketFactory(session.getSocketFactory());
             validateJWSRequest.connect();
-            mainContext.addTextToOutputUI(TAG , "URL: " + validateJWSRequest.getURL().toString() + "\nPinned certificate: correct \nResult: " + returnVal(new BufferedInputStream(validateJWSRequest.getInputStream())));
-
-        } catch (CertificateException e) {
-            mainContext.addErrorToOutputUI(TAG, e.getMessage());
+            output.printText(tag, action , "URL: " + validateJWSRequest.getURL().toString() + "\nPinned certificate: correct \nResult: " + bfsToString(new BufferedInputStream(validateJWSRequest.getInputStream())));
         } catch (MalformedURLException e) {
-            mainContext.addErrorToOutputUI(TAG, e.getMessage());
+            output.printText(tag, action, e.getMessage());
         } catch (IOException e) {
-            mainContext.addErrorToOutputUI(TAG, e.getMessage());
-        } catch (NoSuchAlgorithmException e) {
-            mainContext.addErrorToOutputUI(TAG, e.getMessage());
-        } catch (KeyStoreException e) {
-            mainContext.addErrorToOutputUI(TAG, e.getMessage());
-        } catch (KeyManagementException e) {
-            mainContext.addErrorToOutputUI(TAG, e.getMessage());
-        } catch (InterruptedException e) {
-            mainContext.addErrorToOutputUI(TAG, e.toString());
-        } catch (ExecutionException e) {
-            mainContext.addErrorToOutputUI(TAG, e.getLocalizedMessage());
+            output.printText(tag, action, e.getMessage());
         }
-        return null;
     }
 
-    private String returnVal(BufferedInputStream input)
+    private String bfsToString(BufferedInputStream input)
     {
         String returnVal = "";
         try{
