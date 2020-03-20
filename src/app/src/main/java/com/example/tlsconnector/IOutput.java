@@ -1,6 +1,11 @@
 package com.example.tlsconnector;
 
+/**
+ * Blueprint for output for logs and errors.
+ *
+ * @author Cees Mandjes
+ */
 public interface IOutput {
-    void printText(String tag, String action, String value);
+    void printLog(String tag, String action, String value);
     void printError(String tag, String action, String value);
 }

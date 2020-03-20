@@ -1,7 +1,6 @@
 package com.example.tlsconnector;
 
 import android.app.Activity;
-
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -14,25 +13,41 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
-
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 
+/**
+ * Implements the abstract class SafetyNetConnector using Android's default library for certificate pinning; this class implements
+ * functions for pin certificate, request nonce and send signed attestation. The SafetyNet Attestation evaluation and the order of
+ * the SafetyNet Attestation check process is implemented in the parent class.
+ *
+ * @author Cees Mandjes
+ */
 public class AndroidsDefaultLibraryConnector extends SafetyNetConnector {
-
+    //Session which contains the pinned certificate
     private SSLContext session;
 
-    public AndroidsDefaultLibraryConnector(String baseURL, CertificateInformation certificate, Activity context, IOutput output)
+    /**
+     * Forwards all the required properties to perform the SafetyNet Attestation process to the SafetyNetConnector.
+     *
+     * @param domainName Application's server domain name
+     * @param certificate Certificate which needs to be pinned for the domain name
+     * @param pathNonce Application's server path to request a nonce
+     * @param pathJWS Application's server path to send the signed attestation
+     * @param context Main thread used for the SafetyNet Attestation evaluation
+     * @param output Output implementation for logs and errors
+     */
+    public AndroidsDefaultLibraryConnector(String domainName, CertificateInformation certificate, String pathNonce, String pathJWS,
+        Activity context, IOutput output)
     {
-        super("Android's default library", baseURL, certificate, context, output);
+        super("Android's default library", domainName, certificate, pathNonce, pathJWS, context, output);
     }
 
     @Override
-    protected void pinCertificate(String baseURL, CertificateInformation certificate) {
+    protected void pinCertificate(String domainName, CertificateInformation certificate) {
         String action = "Pin certificate";
         try {
-            //** Pin certificate **
             //Load given certificate into certificate factory and create certificate object
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
             Certificate ca = cf.generateCertificate(certificate.file);
@@ -48,11 +63,11 @@ public class AndroidsDefaultLibraryConnector extends SafetyNetConnector {
             TrustManagerFactory tmf = TrustManagerFactory.getInstance(tmfAlgorithm);
             tmf.init(keyStore);
 
-            // Create an SSLContext that uses our TrustManager
+            //Create an SSLContext that uses our TrustManager and store it in the session
             session = SSLContext.getInstance("TLS");
             session.init(null, tmf.getTrustManagers(), null);
 
-            output.printText(tag, action, "Certificate for host " + certificate.wildcardDomainName + " is pinned");
+            output.printLog(tag, action, "Certificate for host " + certificate.wildcardDomainName + " is pinned");
         } catch (IOException e) {
             output.printError(tag, action, e.getMessage());
         } catch (CertificateException e) {
@@ -67,17 +82,16 @@ public class AndroidsDefaultLibraryConnector extends SafetyNetConnector {
     }
 
     @Override
-    protected byte[] requestNonce(String baseURL) {
+    protected byte[] requestNonce(String domainName, String pathNonce) {
         String action = "Request nonce";
         try {
-            //** Get nonce from server **
-            URL getNonceUrl = new URL(baseURL + "/index.php/api/getnonce");
+            URL getNonceUrl = new URL(domainName + pathNonce);
             HttpsURLConnection getNonceRequest =
                     (HttpsURLConnection) getNonceUrl.openConnection();
-            //Use pinned certificate
+            //Use pinned certificate for request
             getNonceRequest.setSSLSocketFactory(session.getSocketFactory());
             String nonce = bfsToString(new BufferedInputStream(getNonceRequest.getInputStream()));
-            output.printText(tag, action, "URL: " + getNonceRequest.getURL().toString() + "\nPinned certificate: correct \nNonce:" + nonce);
+            output.printLog(tag, action, "URL: " + getNonceRequest.getURL().toString() + "\nPinned certificate: correct \nNonce:" + nonce);
 
             return nonce.getBytes();
         } catch (MalformedURLException e) {
@@ -89,11 +103,10 @@ public class AndroidsDefaultLibraryConnector extends SafetyNetConnector {
     }
 
     @Override
-    protected void sendSignedAttestation(String baseURL, String signedAttestation) {
+    protected void sendSignedAttestation(String domainName, String pathJWS, String signedAttestation) {
         String action = "Send signed attestation";
         try {
-            //** Forward signed attestation to server **
-            URL sendSafetyNetJWS = new URL(baseURL + "/index.php/api/validatejws");
+            URL sendSafetyNetJWS = new URL(domainName + pathJWS);
             HttpsURLConnection validateJWSRequest =
                     (HttpsURLConnection) sendSafetyNetJWS.openConnection();
             //Set signed attestation in POST request
@@ -105,17 +118,23 @@ public class AndroidsDefaultLibraryConnector extends SafetyNetConnector {
             PrintWriter out = new PrintWriter(validateJWSRequest.getOutputStream());
             out.print(postParameters);
             out.close();
-            //Use pinned certificate
+            //Use pinned certificate for request
             validateJWSRequest.setSSLSocketFactory(session.getSocketFactory());
             validateJWSRequest.connect();
-            output.printText(tag, action , "URL: " + validateJWSRequest.getURL().toString() + "\nPinned certificate: correct \nResult: " + bfsToString(new BufferedInputStream(validateJWSRequest.getInputStream())));
+            output.printLog(tag, action , "URL: " + validateJWSRequest.getURL().toString() + "\nPinned certificate: correct \nResult: " + bfsToString(new BufferedInputStream(validateJWSRequest.getInputStream())));
         } catch (MalformedURLException e) {
-            output.printText(tag, action, e.getMessage());
+            output.printLog(tag, action, e.getMessage());
         } catch (IOException e) {
-            output.printText(tag, action, e.getMessage());
+            output.printLog(tag, action, e.getMessage());
         }
     }
 
+    /**
+     * Transfers a bufferedinputstream into a String.
+     *
+     * @param input bufferedinputstream input
+     * @return String output
+     */
     private String bfsToString(BufferedInputStream input)
     {
         String returnVal = "";

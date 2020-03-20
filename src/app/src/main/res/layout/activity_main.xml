@@ -37,7 +37,7 @@
         android:layout_width="206dp"
         android:layout_height="48dp"
         android:layout_marginTop="8dp"
-        android:onClick="executeTLSConnection"
+        android:onClick="performSafetyNetCheck"
         android:text="Execute"
         app:layout_constraintBottom_toTopOf="@+id/output_tls_connection_tv"
         app:layout_constraintEnd_toEndOf="parent"

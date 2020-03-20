@@ -9,43 +9,48 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
+/**
+ * Implements the abstract class SafetyNetConnector using the OkHttp library for certificate pinning; this class implements functions
+ * for pin certificate, request nonce and send signed attestation. The SafetyNet Attestation evaluation and the order of the SafetyNet
+ * Attestation check process is implemented in the parent class.
+ *
+ * @author Cees Mandjes
+ */
 public class OKHttpLibraryConnector extends SafetyNetConnector {
 
     OkHttpClient session;
 
-    public OKHttpLibraryConnector(String baseURL, CertificateInformation certificate, Activity context, IOutput output)
+    public OKHttpLibraryConnector(String domainName, CertificateInformation certificate, String pathNonce, String pathJWS,
+        Activity context, IOutput output)
     {
-        super("OKHttp library", baseURL, certificate, context, output);
+        super("OKHttp library", domainName, certificate, pathNonce, pathJWS, context, output);
     }
 
     @Override
-    protected void pinCertificate(String baseURL, CertificateInformation certificate) {
+    protected void pinCertificate(String domainName, CertificateInformation certificate) {
         String action = "Pin certificate";
-
-        //** Pin certificate **
         //Pin certificate by its domain name and certificate's hash
         CertificatePinner certificatePinner = new CertificatePinner.Builder()
             .add(certificate.wildcardDomainName, certificate.hash)
             .build();
-        //Create http client with pinned certificate
+        //Create http client with pinned certificate and store it as a session
         session = new OkHttpClient.Builder()
             .certificatePinner(certificatePinner)
             .build();
 
-        output.printText(tag, action, "Certificate for host " + certificate.wildcardDomainName + " is pinned");
+        output.printLog(tag, action, "Certificate for host " + certificate.wildcardDomainName + " is pinned");
     }
 
     @Override
-    protected byte[] requestNonce(String baseURL) {
+    protected byte[] requestNonce(String domainName, String pathNonce) {
         String action = "Request nonce";
         try {
-            //** Get nonce from server **
             Request getNonceRequest = new Request.Builder()
-                    .url(baseURL + "/index.php/api/getnonce").build();
-            //Use pinned certificate
+                    .url(domainName + pathNonce).build();
+            //Use pinned certificate for request
             Response getNonceResponse = session.newCall(getNonceRequest).execute();
             String nonce = getNonceResponse.body().string();
-            output.printText(tag, action, "URL: " + getNonceRequest.url().toString() + "\nPinned certificate: correct \nNonce:" + nonce);
+            output.printLog(tag, action, "URL: " + getNonceRequest.url().toString() + "\nPinned certificate: correct \nNonce:" + nonce);
 
             return nonce.getBytes();
         }
@@ -58,10 +63,9 @@ public class OKHttpLibraryConnector extends SafetyNetConnector {
     }
 
     @Override
-    protected void sendSignedAttestation(String baseURL, String signedAttestation) {
+    protected void sendSignedAttestation(String domainName, String pathJWS, String signedAttestation) {
         String action = "Send signed attestation";
         try {
-            //** Forward signed attestation to server **
             //Set signed attestation in POST body
             RequestBody postRequestBody = new MultipartBody.Builder()
                     .setType(MultipartBody.FORM)
@@ -69,13 +73,13 @@ public class OKHttpLibraryConnector extends SafetyNetConnector {
                     .build();
             //Set POST body and do request
             Request validateJWSRequest = new Request.Builder()
-                    .url(baseURL + "/index.php/api/validatejws")
+                    .url(domainName + pathJWS)
                     .post(postRequestBody)
                     .build();
-            //Use pinned certificate
+            //Use pinned certificate for request
             Response validateJWSResponse = session.newCall(validateJWSRequest).execute();
             String result = validateJWSResponse.body().string();
-            output.printText(tag, action, "URL: " + validateJWSRequest.url().toString() + "\nPinned certificate: correct \nResult: " + result);
+            output.printLog(tag, action, "URL: " + validateJWSRequest.url().toString() + "\nPinned certificate: correct \nResult: " + result);
         }
         catch (IOException e)
         {

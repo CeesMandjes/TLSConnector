@@ -8,101 +8,134 @@ import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.Spinner;
 import android.widget.TextView;
-
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
-
 import java.io.InputStream;
 
+/**
+ * Starting point of the TLSConnector. It initializes the UI of the application and implements functionality to check Google Service
+ * availability version 13 or above and the initialization of the SafetyNet Attestation check process. The SafetyNet Attestation check
+ * is using certificate pinning for its requests. The TLSConnector supports two libraries: Android's default library and OkHttp library.
+ * The library which is used for the request can be chosen by the user in the UI before the check is performed.
+ *
+ * @author Cees Mandjes
+ */
 public class MainActivity extends AppCompatActivity implements IOutput {
-
-    //UI Fields properties
+    //UI properties
     private Spinner apiSpn;
     private final String[] apiNames = new String[] {"Android's default library", "OKHttp library"};
     private TextView tlsConnectionOutputTv;
     private CheckBox pinCorrectCertificateCb;
+    //URL config
+    private final String domainName = "https://cees.nwlab.nl";
+    private final String pathNonce = "/index.php/api/getnonce";
+    private final String pathJWS = "/index.php/api/validatejws";
 
-    //TLS URLS config
-    private final String url = "https://cees.nwlab.nl";
-
+    /**
+     * Initializes the UI of the application. This includes the dropdown which can be used to choose the certificate pinning library, a
+     * checkbox which the user can choose whether it want to pin the correct certificate for the requests and the output box which is used
+     * to print logs and errors in the UI. Furthermore, it also initializes a check whether the device has the correct Google Play Services
+     * version installed.
+     *
+     * @param savedInstanceState Default param
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //Initialize API names
+        //Initialize API names for dropdown
         apiSpn = findViewById(R.id.tls_API_spn);
         ArrayAdapter<String> APIAdapter = new ArrayAdapter<String>(this,
                 android.R.layout.simple_spinner_dropdown_item, apiNames);
         apiSpn.setAdapter(APIAdapter);
-
         //Initialize checkbox for correct certificate insertion
         pinCorrectCertificateCb = findViewById(R.id.pin_correct_certificate_cb);
-
-        //Initialize output field
+        //Initialize output field with scrollbar
         tlsConnectionOutputTv = findViewById(R.id.output_tls_connection_tv);
         tlsConnectionOutputTv.setMovementMethod(new ScrollingMovementMethod());
+        //Checks whether the device has the correct Google Play Services version installed
+        verifyGooglePlayServices();
+    }
 
-        //Do Google Play service check
+    /**
+     * Checks whether the device has Google Play Services installed and whether it is version 13 and above. When the condition is met, a
+     * log message is printed; otherwise, an error message.
+     */
+    private void verifyGooglePlayServices()
+    {
         final String googlePlayServiceTag = "Google play services";
         final String googlePlayServiceAction = "Availability and version check";
         if (GoogleApiAvailability.getInstance()
                 .isGooglePlayServicesAvailable(this, 13000000) ==
                 ConnectionResult.SUCCESS) {
-            printText(googlePlayServiceTag, googlePlayServiceAction, "Success: Device has Google Play service version 13+ installed");
+            printLog(googlePlayServiceTag, googlePlayServiceAction, "Success: Device has Google Play service version 13+ installed");
         } else {
             printError(googlePlayServiceTag, googlePlayServiceAction, "Device does not have Google Play service version 13+ installed");
         }
     }
 
-    public void executeTLSConnection(View view)
+    /**
+     * Called when the user chose to Initialize the SafetyNet Attestation check by clicking a button in the UI. This function starts the
+     * SafetyNet Attestation check process by the settings which are set by the user, such as the certificate pinning library, in the UI.
+     *
+     * @param view Default param
+     */
+    public void performSafetyNetCheck(View view)
     {
         //Initialize certificates
-        CertificateInformation badSSLCertificate = new CeesNWLabCertificate(getResources().openRawResource(R.raw.ceesnwlab));
+        CertificateInformation correctCertificate = new CorrectCertificate(getResources().openRawResource(R.raw.ceesnwlab));
         CertificateInformation incorrectCertificate = new IncorrectCertificate(getResources().openRawResource(R.raw.nunl));
 
         //Initialize (correct) certificate to pin for connection
-        CertificateInformation certificateInformation;
+        CertificateInformation certificate;
         if(pinCorrectCertificateCb.isChecked())
-            certificateInformation = badSSLCertificate;
+            certificate = correctCertificate;
         else
-            certificateInformation = incorrectCertificate;
+            certificate = incorrectCertificate;
 
-        //Initialize API for connection based on user's input
+        //Get chosen library for certificate pinning and use it to perform the SafetyNet check
         String apiNameVal = apiSpn.getSelectedItem().toString();
         switch (apiNameVal) {
             case "Android's default library":
-                executeHttpURLConnection(url, certificateInformation);
+                new AndroidsDefaultLibraryConnector(domainName, certificate, pathNonce, pathJWS, this, this).execute();
                 break;
             case "OKHttp library":
-                executeOKHttp(url, certificateInformation);
+                new OKHttpLibraryConnector(domainName, certificate, pathNonce, pathJWS, this, this).execute();
                 break;
         }
     }
 
-    public void executeHttpURLConnection(String baseURL, CertificateInformation certificate)
-    {
-        new AndroidsDefaultLibraryConnector(baseURL, certificate, this, this).execute();
-    }
-
-    public void executeOKHttp(String baseURL, CertificateInformation certificate)
-    {
-        new OKHttpLibraryConnector(baseURL, certificate, this, this).execute();
-    }
-
-    public void printText(String tag, String action, String value)
+    /**
+     * Prints logs in the output box in the UI.
+     *
+     * @param tag Process/library which is the log about
+     * @param action Action taken which is the log about
+     * @param value Log value
+     */
+    public void printLog(String tag, String action, String value)
     {
         String current = tlsConnectionOutputTv.getText().toString();
         tlsConnectionOutputTv.setText(current + "\n\n" + tag +  " - " + action + "\n" + value );
     }
 
+    /**
+     * Prints errors in the output box in the UI.
+     *
+     * @param tag Process/library which is the error about
+     * @param action Action taken which is the error about
+     * @param value Error value
+     */
     public void printError(String tag, String action, String value)
     {
-        printText(tag, action , "Error: " + value);
+        printLog(tag, action , "Error: " + value);
     }
 
-    private final class CeesNWLabCertificate extends CertificateInformation{
-        public CeesNWLabCertificate(InputStream file)
+    /**
+     * Correct certificate's information config.
+     */
+    private final class CorrectCertificate extends CertificateInformation{
+        public CorrectCertificate(InputStream file)
         {
             super(
                 file,
@@ -112,6 +145,9 @@ public class MainActivity extends AppCompatActivity implements IOutput {
         }
     }
 
+    /**
+     * Incorrect certificate's information config.
+     */
     private final class IncorrectCertificate extends CertificateInformation{
         public IncorrectCertificate(InputStream file)
         {
