@@ -6,26 +6,14 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <Spinner
-        android:id="@+id/tls_API_spn"
+    <TextView
+        android:id="@+id/output_tls_connection_tv"
         android:layout_width="0dp"
-        android:layout_height="60dp"
+        android:layout_height="0dp"
         android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
-        android:spinnerMode="dropdown"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/output_tls_connection_tv"
-        android:layout_width="365dp"
-        android:layout_height="420dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="4dp"
         android:scrollbars="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -34,26 +22,59 @@
 
     <Button
         android:id="@+id/execute_tls_connection_btn"
-        android:layout_width="206dp"
-        android:layout_height="48dp"
-        android:layout_marginTop="8dp"
+        android:minHeight="0dp" android:minWidth="0dp"
+        android:layout_width="0dp"
+        android:layout_height="43dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="2dp"
+        android:layout_marginEnd="16dp"
         android:onClick="performSafetyNetCheck"
-        android:text="Execute"
+        android:text="Perform SafetyNet Attestation check"
         app:layout_constraintBottom_toTopOf="@+id/output_tls_connection_tv"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/pin_correct_certificate_cb"
-        app:layout_constraintVertical_bias="0.046" />
+        app:layout_constraintTop_toBottomOf="@+id/pin_correct_certificate_cb" />
+
+    <Spinner
+        android:id="@+id/tls_API_spn"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="16dp"
+        android:paddingLeft="-5dp"
+        android:spinnerMode="dropdown"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <CheckBox
         android:id="@+id/pin_correct_certificate_cb"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="16dp"
+        android:paddingLeft="-5dp"
         android:text="Pin correct certificate"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tls_API_spn" />
+
+    <TextView
+        android:id="@+id/certificate_pinning_api_tv"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="2dp"
+        android:text="Certificate pinning library"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toTopOf="@+id/tls_API_spn"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="1.0" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
