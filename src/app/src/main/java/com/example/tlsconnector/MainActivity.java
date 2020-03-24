@@ -21,15 +21,20 @@ import java.io.InputStream;
  * @author Cees Mandjes
  */
 public class MainActivity extends AppCompatActivity implements IOutput {
+    //URL config
+    private final String domainName = "https://cees.nwlab.nl";
+    private final String pathNonce = "/index.php/api/getnonce";
+    private final String pathJWS = "/index.php/api/validatejws";
+    //Certificate config
+    private final int certificateFile = R.raw.server;
+    private final String certificateHash = "sha256/PUI0MHiv1VYRDKQAhUU72iatxZb+NYiBHNVMlOOiz8c=";
+    private final String certificateWildcardDomainName = "cees.nwlab.nl";
+
     //UI properties
     private Spinner apiSpn;
     private final String[] apiNames = new String[] {"Android's default library", "OKHttp library"};
     private TextView tlsConnectionOutputTv;
     private CheckBox pinCorrectCertificateCb;
-    //URL config
-    private final String domainName = "https://cees.nwlab.nl";
-    private final String pathNonce = "/index.php/api/getnonce";
-    private final String pathJWS = "/index.php/api/validatejws";
 
     /**
      * Initializes the UI of the application. This includes the dropdown which can be used to choose the certificate pinning library, a
@@ -84,8 +89,8 @@ public class MainActivity extends AppCompatActivity implements IOutput {
     public void performSafetyNetCheck(View view)
     {
         //Initialize certificates
-        CertificateInformation correctCertificate = new CorrectCertificate(getResources().openRawResource(R.raw.ceesnwlab));
-        CertificateInformation incorrectCertificate = new IncorrectCertificate(getResources().openRawResource(R.raw.nunl));
+        CertificateInformation correctCertificate = new CorrectCertificate(getResources().openRawResource(certificateFile), certificateHash, certificateWildcardDomainName);
+        CertificateInformation incorrectCertificate = new IncorrectCertificate();
 
         //Initialize (correct) certificate to pin for connection
         CertificateInformation certificate;
@@ -135,13 +140,9 @@ public class MainActivity extends AppCompatActivity implements IOutput {
      * Correct certificate's information config.
      */
     private final class CorrectCertificate extends CertificateInformation{
-        public CorrectCertificate(InputStream file)
+        public CorrectCertificate(InputStream file, String hash, String wildcardDomainName)
         {
-            super(
-                file,
-                "sha256/PUI0MHiv1VYRDKQAhUU72iatxZb+NYiBHNVMlOOiz8c=",
-                "cees.nwlab.nl"
-            );
+            super(file, hash, wildcardDomainName);
         }
     }
 
@@ -149,12 +150,12 @@ public class MainActivity extends AppCompatActivity implements IOutput {
      * Incorrect certificate's information config.
      */
     private final class IncorrectCertificate extends CertificateInformation{
-        public IncorrectCertificate(InputStream file)
+        public IncorrectCertificate()
         {
             super(
-                file,
+                 getResources().openRawResource(R.raw.nunl),
                 "sha256/1OLklscvzMYj8f888lp5ze/hY0CFHyLSPQzSpYYIBm8=",
-                "cees.nwlab.nl"
+                 certificateWildcardDomainName
             );
         }
     }
