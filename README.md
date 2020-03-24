@@ -24,7 +24,7 @@ Configuration (MainActivity):
 </ul>
 <br/>
 NOTE: A server implementation for the SafetyNet Attestation check is required.
-
+<br/>
 Screenshots of the TLSConnector in action:<br>
 
 <img src="/images/screenshotAndroidsDefault.jpeg" width="300">
