@@ -11,7 +11,8 @@ When the user chose the certificate pinning library, it can chose whether it wan
 <br/>
 NOTE: A server implementation for the SafetyNet Attestation check is required.
 <br/><br/>
-Configuration (MainActivity):<br/>- Set application's server domain in 'domainName'
+Configuration (MainActivity):
+- Set application's server domain in 'domainName'
 - Set application's server path to request nonce in 'pathNonce'
 - Set application's server path to send SafetyNet's signed attestation in 'pathNonce'
 - Set application's server certificate /src/app/src/main/res/raw/server.crt
