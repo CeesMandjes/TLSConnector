@@ -20,7 +20,7 @@ Configuration (MainActivity):
 <li>Set application's server domain in 'domainName'</li>
 <li>Set application's server path to request nonce in 'pathNonce'</li>
 <li>Set application's server path to send SafetyNet's signed attestation in 'pathNonce'</li>
-<li>Set application's server certificate /src/app/src/main/res/raw/server.crt</li>
+<li>Save application's server certificate in '/src/app/src/main/res/raw/server.crt'</li>
 <li>Set application's server certificate's hash in 'certificateHash'</li>
 <li>Set application's server certificate's wildcard domain name in 'certificateWildcardDomainName'</li>
 </ul>
