@@ -4,7 +4,7 @@ Client implementation for Android SafetyNet Attestation check. This Android appl
 <li>Android's default library</li>
 <li>OKHttp Library</li>
 </ul>
-<br/>
+
 When the user chose the certificate pinning library, it can choose whether it wants to pin the correct certificate. Once all those settings are set, the user can start the SafetyNet Attestation check by clicking the button in the UI, this starts the following process:
 <ul>
 <li>Pin the certificate for the host</li>
@@ -13,8 +13,6 @@ When the user chose the certificate pinning library, it can choose whether it wa
 <li>Send the SafetyNet's signed attestation to the application server which will provide the outcome of the SafetyNet Attestation check</li>
 </ul>
 
-NOTE: A server implementation for the SafetyNet Attestation check is required.
-<br/><br/>
 Configuration (MainActivity):
 <ul>
 <li>Set application's server domain in 'domainName'</li>
@@ -24,6 +22,8 @@ Configuration (MainActivity):
 <li>Set application's server certificate's hash in 'certificateHash'</li>
 <li>Set application's server certificate's wildcard domain name in 'certificateWildcardDomainName'</li>
 </ul>
+<br/>
+NOTE: A server implementation for the SafetyNet Attestation check is required.
 
 Screenshots of the TLSConnector in action:<br>
 
