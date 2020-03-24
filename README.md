@@ -3,7 +3,7 @@ Client implementation for Android SafetyNet Attestation check. This Android appl
 <ul>
 <li>Android's default library</li>
 <li>OKHttp Library</li>
-<ul>
+</ul>
 <br/>
 When the user chose the certificate pinning library, it can chose whether it wants to pin the correct certificate. Once all those settings are set, the user can start the SafetyNet Attestation check by clicking the button in the UI, this will do the following:
 <ul>
