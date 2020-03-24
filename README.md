@@ -23,5 +23,6 @@ Configuration (MainActivity):
 
 Screenshots of the TLSConnector in action:<br>
 
-![Android's default library](/images/screenshotAndroidsDefault.jpeg){ width=150px }
+<img src="/images/screenshotAndroidsDefault.jpeg" width="200">
+
 
