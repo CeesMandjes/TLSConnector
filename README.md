@@ -11,13 +11,15 @@ When the user chose the certificate pinning library, it can chose whether it wan
 <br/>
 NOTE: A server implementation for the SafetyNet Attestation check is required.
 <br/><br/>
-chosen by the user in the UI, the following libraries are supported:
-- Set application's server domain in 'domainName'
-- Set application's server path to request nonce in 'pathNonce'
-- Set application's server path to send SafetyNet's signed attestation in 'pathNonce'
-- Set application's server certificate /src/app/src/main/res/raw/server.crt
-- Set application's server certificate's hash in 'certificateHash'
-- Set application's server certificate's wildcard domain name in 'certificateWildcardDomainName'
+Configuration (MainActivity):
+<ul>
+<li>Set application's server domain in 'domainName'</li>
+<li>Set application's server path to request nonce in 'pathNonce'</li>
+<li>Set application's server path to send SafetyNet's signed attestation in 'pathNonce'</li>
+<li>Set application's server certificate /src/app/src/main/res/raw/server.crt</li>
+<li>Set application's server certificate's hash in 'certificateHash'</li>
+<li>Set application's server certificate's wildcard domain name in 'certificateWildcardDomainName'</li>
+</ul>
 
 Screenshots of the TLSConnector in action:<br>
 
