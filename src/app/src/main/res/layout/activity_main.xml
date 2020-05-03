@@ -8,29 +8,29 @@
 
     <TextView
         android:id="@+id/output_tls_connection_tv"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_width="379dp"
+        android:layout_height="411dp"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="4dp"
         android:scrollbars="vertical"
+        android:textColor="@android:color/black"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/execute_tls_connection_btn" />
+        app:layout_constraintTop_toBottomOf="@+id/certificate_pinning_api_tv2" />
 
     <Button
         android:id="@+id/execute_tls_connection_btn"
-        android:minHeight="0dp" android:minWidth="0dp"
         android:layout_width="0dp"
         android:layout_height="43dp"
         android:layout_marginStart="16dp"
         android:layout_marginTop="2dp"
         android:layout_marginEnd="16dp"
+        android:minWidth="0dp"
+        android:minHeight="0dp"
         android:onClick="performSafetyNetCheck"
         android:text="Perform SafetyNet Attestation check"
-        app:layout_constraintBottom_toTopOf="@+id/output_tls_connection_tv"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
@@ -76,5 +76,22 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="1.0" />
+
+    <TextView
+        android:id="@+id/certificate_pinning_api_tv2"
+        android:layout_width="0dp"
+        android:layout_height="21dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="2dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="2dp"
+        android:text="Output"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toTopOf="@+id/output_tls_connection_tv"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/execute_tls_connection_btn"
+        app:layout_constraintVertical_bias="0.097" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
