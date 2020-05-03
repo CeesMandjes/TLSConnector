@@ -23,7 +23,8 @@ Configuration (MainActivity):
 <li>Set application's server certificate's wildcard domain name in 'certificateWildcardDomainName'</li>
 </ul>
 <br/>
-NOTE: A server implementation for the SafetyNet Attestation check is required.
+NOTE: A server implementation for the SafetyNet Attestation check is required. See:
+https://github.com/CeesMandjes/TLSConnectorServer
 <br/><br/>
 Screenshots of the TLSConnector in action:<br>
 
