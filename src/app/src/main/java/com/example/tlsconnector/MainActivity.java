@@ -27,7 +27,7 @@ public class MainActivity extends AppCompatActivity implements IOutput {
     private final String pathJWS = "/index.php/api/validatejws";
     //Certificate config
     private final int certificateFile = R.raw.server;
-    private final String certificateHash = "sha256/PUI0MHiv1VYRDKQAhUU72iatxZb+NYiBHNVMlOOiz8c=";
+    private final String certificateHash = "sha256/I229IU8zTiGr65j3A9yMMHUXgXg25hfReZ1vnV9pIBo=";
     private final String certificateWildcardDomainName = "cees.nwlab.nl";
 
     //UI properties
